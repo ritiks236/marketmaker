@@ -1,8 +1,4 @@
-import {
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-} from "@solana/web3.js";
+import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import base58 from "bs58";
 import "dotenv/config";
 import { buy, distributeSol, sell } from "../utils/volumeUtils";
@@ -22,14 +18,13 @@ import {
 
 const main = async () => {
   const mainKp = Keypair.fromSecretKey(
-    base58.decode(process.env.WALLET_PRIVATE_KEY)
+    base58.decode(process.env.WALLET_PRIVATE_KEY),
   );
-  const solBalance =
-    (await getSolanaBalance(mainKp.publicKey.toString())) / LAMPORTS_PER_SOL;
+  const solBalance = await getSolanaBalance(mainKp.publicKey.toString());
   const baseMint = new PublicKey(TOKEN_MINT);
 
   console.log(`Volume bot is running`);
-  console.log(`Wallet address: ${mainKp.publicKey.toBase58()}`);
+  console.log(`Wallet address: ${mainKp.publicKey}`);
   console.log(`Pool token mint: ${baseMint.toBase58()}`);
   console.log(`Wallet SOL balance: ${solBalance.toFixed(3)}SOL`);
   console.log(`Distribute SOL to ${DISTRIBUTION_NUM} wallets`);
@@ -65,7 +60,7 @@ const main = async () => {
 
   if (buyPriority.length === 0 || TOTAL_TRANSACTION <= 0) {
     throw new Error(
-      "Invalid input: buyPriority cannot be empty and totalTransactions must be positive."
+      "Invalid input: buyPriority cannot be empty and totalTransactions must be positive.",
     );
   }
 
@@ -79,7 +74,7 @@ const main = async () => {
   for (let i = 0; i < TOTAL_TRANSACTION; i++) {
     // buy part
     const BUY_INTERVAL = Math.round(
-      Math.random() * (BUY_INTERVAL_MAX - BUY_INTERVAL_MIN) + BUY_INTERVAL_MIN
+      Math.random() * (BUY_INTERVAL_MAX - BUY_INTERVAL_MIN) + BUY_INTERVAL_MIN,
     );
 
     let buyAmount: number;
@@ -88,7 +83,7 @@ const main = async () => {
         (
           Math.random() * (BUY_UPPER_AMOUNT - BUY_LOWER_AMOUNT) +
           BUY_LOWER_AMOUNT
-        ).toFixed(6)
+        ).toFixed(6),
       );
     else buyAmount = BUY_AMOUNT;
 
@@ -104,9 +99,9 @@ const main = async () => {
         const wallet = buyPriority.pop();
         sellPriority.push(wallet);
 
-        const solBalance =
-          (await getSolanaBalance(wallet.kp.publicKey.toString())) /
-          LAMPORTS_PER_SOL;
+        const solBalance = await getSolanaBalance(
+          wallet.kp.publicKey.toString(),
+        );
         if (solBalance < ADDITIONAL_FEE) {
           console.log("Balance is not enough: ", solBalance, "SOL");
           return;
@@ -119,6 +114,7 @@ const main = async () => {
             console.log("Error in buy transaction");
             return;
           }
+
           const result = await buy(wallet.kp, baseMint.toBase58(), buyAmount);
           if (result) {
             break;
@@ -131,7 +127,7 @@ const main = async () => {
         buyCount++;
       } else {
         console.warn(
-          "Buy limit reached, performing random sell (if possible)."
+          "Buy limit reached, performing random sell (if possible).",
         );
         // Handle exhausted buy priority (optional: random sell)
         // try selling until success
@@ -182,7 +178,10 @@ const main = async () => {
         break; // Exit loop if both buy and sell limits reached
       }
     }
-    console.log("Time delay = " , (5000 + DISTRIBUTION_NUM * BUY_INTERVAL)/1000 )
+    console.log(
+      "Time delay = ",
+      (5000 + DISTRIBUTION_NUM * BUY_INTERVAL) / 1000,
+    );
     await delay(5000 + DISTRIBUTION_NUM * BUY_INTERVAL);
   }
 };

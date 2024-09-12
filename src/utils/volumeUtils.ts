@@ -25,7 +25,7 @@ import { sellToken } from "../swapper/sellToken";
 // Function to distribute SOL among wallets
 export const distributeSol = async (
   mainKp: Keypair,
-  distritbutionNum: number
+  distritbutionNum: number,
 ) => {
   const solanaConnection = new Connection(process.env.RPC_URL, {
     wsEndpoint: process.env.RPC_WEBSOCKET_ENDPOINT,
@@ -38,7 +38,7 @@ export const distributeSol = async (
     const sendSolTx: TransactionInstruction[] = [];
     sendSolTx.push(
       ComputeBudgetProgram.setComputeUnitLimit({ units: 100_000 }),
-      ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 250_000 })
+      ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 250_000 }),
     );
 
     for (let i = 0; i < distritbutionNum; i++) {
@@ -54,7 +54,7 @@ export const distributeSol = async (
           fromPubkey: mainKp.publicKey,
           toPubkey: wallet.publicKey,
           lamports: solAmount * LAMPORTS_PER_SOL,
-        })
+        }),
       );
     }
 
@@ -75,7 +75,7 @@ export const distributeSol = async (
         transaction.sign([mainKp]);
         const signature = await solanaConnection.sendRawTransaction(
           transaction.serialize(),
-          { skipPreflight: true }
+          { skipPreflight: true },
         );
         const confirmation = await solanaConnection.confirmTransaction({
           signature,
@@ -87,7 +87,7 @@ export const distributeSol = async (
           return "";
         } else {
           console.log(
-            `Success in distributing SOL : https://solscan.io/tx/${signature}`
+            `Success in distributing SOL : https://solscan.io/tx/${signature}`,
           );
         }
         break;
@@ -130,7 +130,7 @@ export const buy = async (
     return null;
   }
   if (solBalance == 0) {
-    console.log(`No SOL in ${newWallet.publicKey.toString()}`)
+    console.log(`No SOL in ${newWallet.publicKey.toString()}`);
     return null;
   }
 
@@ -140,7 +140,7 @@ export const buy = async (
       tokenAddress,
       buyAmount,
       true,
-      false
+      false,
     )) as string;
 
     editJson({
@@ -155,7 +155,7 @@ export const buy = async (
 };
 
 // Function to sell token
-export const sell = async (wallet: Keypair ,baseMint: PublicKey) => {
+export const sell = async (wallet: Keypair, baseMint: PublicKey) => {
   try {
     const data: Data[] = readJson();
     if (data.length == 0) {
@@ -164,7 +164,13 @@ export const sell = async (wallet: Keypair ,baseMint: PublicKey) => {
     }
 
     try {
-      const tokenSellTx = await sellToken(wallet,true,baseMint.toString(),false,true);
+      const tokenSellTx = await sellToken(
+        wallet,
+        true,
+        baseMint.toString(),
+        false,
+        true,
+      );
       const solBalance = await getSolanaBalance(wallet.publicKey.toString());
 
       editJson({
@@ -183,37 +189,37 @@ export const sell = async (wallet: Keypair ,baseMint: PublicKey) => {
 
 // Function to save data to file
 export const saveDataToFile = (
-    newData: Data[],
-    filePath: string = "data.json"
-  ) => {
-    try {
-      let existingData: Data[] = [];
-  
-      // Check if the file exists
-      if (fs.existsSync(filePath)) {
-        // If the file exists, read its content
-        const fileContent = fs.readFileSync(filePath, "utf-8");
-        existingData = JSON.parse(fileContent);
-      }
-  
-      // Add the new data to the existing array
-      existingData.push(...newData);
-  
-      // Write the updated data back to the file
-      fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
-    } catch (error) {
-      try {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-          console.log(`File ${filePath} deleted and create new file.`);
-        }
-        fs.writeFileSync(filePath, JSON.stringify(newData, null, 2));
-        console.log("File is saved successfully.");
-      } catch (error) {
-        console.log("Error saving data to JSON file:", error);
-      }
+  newData: Data[],
+  filePath: string = "data.json",
+) => {
+  try {
+    let existingData: Data[] = [];
+
+    // Check if the file exists
+    if (fs.existsSync(filePath)) {
+      // If the file exists, read its content
+      const fileContent = fs.readFileSync(filePath, "utf-8");
+      existingData = JSON.parse(fileContent);
     }
-  };
+
+    // Add the new data to the existing array
+    existingData.push(...newData);
+
+    // Write the updated data back to the file
+    fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
+  } catch (error) {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log(`File ${filePath} deleted and create new file.`);
+      }
+      fs.writeFileSync(filePath, JSON.stringify(newData, null, 2));
+      console.log("File is saved successfully.");
+    } catch (error) {
+      console.log("Error saving data to JSON file:", error);
+    }
+  }
+};
 
 // Function to edit JSON file content
 export function editJson(newData: any, filename: string = "data.json"): void {

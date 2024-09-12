@@ -15,7 +15,7 @@ export const buyToken = async (
   addressOfTokenIn: string,
   amountOfTokenOut: number,
   waitForConfirmation: boolean,
-  wantAmountOfTokenIn: boolean
+  wantAmountOfTokenIn: boolean,
 ): Promise<number | string> => {
   try {
     const connection = new Connection(process.env.RPC_URL, {
@@ -30,14 +30,14 @@ export const buyToken = async (
 
     const convertedAmountOfTokenOut = convertToInteger(
       amountOfTokenOut,
-      decimals
+      decimals,
     );
 
     const quoteResponse = await getQuote(
       SOLANA_ADDRESS,
       addressOfTokenIn,
       convertedAmountOfTokenOut,
-      slippage
+      slippage,
     );
 
     const amountOfTokenIn: number =
@@ -45,27 +45,34 @@ export const buyToken = async (
         .outAmount;
 
     const walletPublicKey = wallet.publicKey.toString();
+
     const swapTransaction = await getSwapTransaction(
       quoteResponse,
-      walletPublicKey
+      walletPublicKey,
     );
 
-    const txid = await finalizeTransaction(swapTransaction, wallet, connection) as string;
-  
-    if(waitForConfirmation){
+    const txid = (await finalizeTransaction(
+      swapTransaction,
+      wallet,
+      connection,
+    )) as string;
+
+    console.log(txid);
+
+    if (waitForConfirmation) {
       logger.info("Waiting for confirmation... 🕒");
-      const latestBlockhash = await connection.getLatestBlockhash()
+      const latestBlockhash = await connection.getLatestBlockhash();
       const confirmation = await connection.confirmTransaction(
         {
           signature: txid,
           blockhash: latestBlockhash.blockhash,
           lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
         },
-        'finalized' // Optional commitment level
+        "finalized", // Optional commitment level
       );
-  
+
       if (confirmation.value.err) {
-        throw new Error("Confrimtaion error")
+        throw new Error("Confrimtaion error");
       }
     }
     // if (waitForConfirmation) {
@@ -89,16 +96,16 @@ export const buyToken = async (
     //     await promise;
     //   } catch (error) {
     //     console.error("Error during transaction confirmation:", error);
-    //     return; 
+    //     return;
     //   } finally {
     //     if (subscriptionId) {
     //       connection.removeSignatureListener(subscriptionId);
     //     }
     //   }
     // }
-  
+
     // logger.info(`Bought ${amountOfTokenIn} ${TOKEN_SYMBOL} Token from ${amountOfTokenOut} SOL ✅`);
-    logger.info(`Signature = https://solscan.io/tx/${txid}`)
+    logger.info(`Signature = https://solscan.io/tx/${txid}`);
 
     if (wantAmountOfTokenIn) {
       return amountOfTokenIn;

@@ -7,7 +7,8 @@
     "profit": "ts-node ./src/profit/server.ts",
     "monitor-solbalance": "node --expose-gc -r ts-node/register ./src/profit/monitorSolBalances.ts",
     "monitor-opentrade": "node --expose-gc -r ts-node/register ./src/profit/monitorTokenPurchase.ts",
-    "volume": "ts-node ./src/volume-maker/volume.ts"
+    "volume": "ts-node ./src/volume-maker/volume.ts",
+    "return-sol": "ts-node ./src/return-sol/transferAndDeleteAccounts.ts"
   },
   "author": "Mukul",
   "license": "MIT",
